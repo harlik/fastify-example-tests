@@ -1,3 +1,5 @@
+_My bit of fun in the Cypress Advent Calendar 2022._
+
 # fastify-example-tests
 
 > Cypress tests to fill to check the [fastify-example](https://github.com/bahmutov/fastify-example) application
