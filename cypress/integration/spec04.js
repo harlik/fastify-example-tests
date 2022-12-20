@@ -1,37 +1,53 @@
 /// <reference types="cypress" />
+import apple from "../fixtures/apple.json";
 
-it('clearly shows the loading element', () => {
-  // stub the network call the application makes
-  // and delay returning the fruit by 2 seconds
-  // https://on.cypress.io/intercept
-  //
-  // visit the page
-  // https://on.cypress.io/visit
-  //
-  // check if the loading element is visible
-  // and then does not exist
-  // https://on.cypress.io/get
-  // https://on.cypress.io/should
-  //
-  // confirm the displayed fruit
-  // https://on.cypress.io/contains
+it('clearly shows the loading element - random fruit', () => {
+  cy.intercept('GET', '/fruit', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(2000);
+      })
+    }
+  )
+    .as('getFruit');
+  cy.visit('/');
+  cy.get('#fruit')
+    .should('contain.text', 'loading');
+  cy.wait('@getFruit');
+  cy.get('#fruit')
+    .should('not.contain.text', 'loading', { timeout: 3000 });
+})
+
+it('clearly shows the loading element - stubbed fruit', () => {
+  cy.intercept('GET', '/fruit', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(2000);
+        res.body = apple;
+      })
+    }
+  )
+    .as('getFruit');
+  cy.visit('/');
+  cy.get('#fruit')
+    .should('contain.text', 'loading');
+  cy.wait('@getFruit');
+  cy.get('#fruit')
+    .should('have.text', apple.fruit, { timeout: 3000 });
 })
 
 // bonus - instead of stubbing the request, just delay it
-it('slows down the /fruit request without stubbing it', () => {
-  // instead of stubbing the request GET /fruit
-  // return a Bluebird Promise that delays the action
-  // by 2 seconds. After that Cypress will continue
-  // with the network request going to the server
-  // https://on.cypress.io/intercept
-  // https://on.cypress.io/promise delay method
-  // Hint: see the lesson spec10
-  //
-  // visit the page "/""
-  //
-  // check if the loading element is visible
-  // and has the text "loading..."
-  //
-  // and then the fruit element should
-  // not have the text "loading"
+it.only('slows down the /fruit request without stubbing it', () => {
+  cy.intercept('GET', '/fruit')    
+  .as('getFruit');
+  cy.visit('/');
+  cy.get('#fruit')
+  .should('have.text', 'loading...');
+  cy.wait('@getFruit')
+    .then(() => {
+      return new Cypress.Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve('foo')
+        }, 2000)    })
+    });
+  cy.get('#fruit')
+    .should('not.have.text', 'loading...', { timeout: 3000 });
 })
